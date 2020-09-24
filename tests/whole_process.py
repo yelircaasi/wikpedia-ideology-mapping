@@ -1,22 +1,27 @@
 """
 	Author: Isaac Riley
-	Date:   September 21, 2020
+	Date:   September 2020
 
 	Contains code to run the entire process.
 """
 
-import sys
-from ../network/wikinet import WikiNet
+#import sys
+import os
+from network.wikinet import WikiNet
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # define global variables
-TAG_SET_PATH, SEED_LIST_PATH, KEYWORD_PATH = sys.argv[1:3]
-SCRAPE_DEPTH = 4
+SEED_CATEGORIES_PATH = PROJECT_ROOT + '/data/lists_seed/root_categories.txt'
 
 
-wn = WikiNet(TAG_SET_PATH, SEED_LIST_PATH, KEYWORD_PATH)
+wn = WikiNet(SEED_CATEGORIES_PATH)
+wn.get_people()
+print(wn.people)
+print(len(wn.people))
 
-wn.add_from_seeds_fw(SCRAPE_DEPTH) # add all links linked to seed pages
-wn.summarize()
-wn.add_from_seeds_bw(SCRAPE_DEPTH) # add all links that link to seed pages
-wn.summarize()
+#wn.add_from_seeds_fw(SCRAPE_DEPTH) # add all links linked to seed pages
+#wn.summarize()
+#wn.add_from_seeds_bw(SCRAPE_DEPTH) # add all links that link to seed pages
+#wn.summarize()
 
