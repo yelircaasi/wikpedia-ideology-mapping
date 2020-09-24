@@ -1,0 +1,65 @@
+#####################################################################
+General
+#####################################################################
+
+Outline: 
+0)    Identify seed sites
+1)    From handful of "seed sites", scrape all of their links up to n levels and create a link network.
+2)    Get "anchor text" for each link & add it to link network
+
+
+Technical aspects / skills:
+0)    Python network data structures
+1)    Scraping and Wikipedia API
+2)    Semantic and sentiment information for link analysis
+
+
+https://stackoverflow.com/questions/14882571/how-to-get-all-urls-in-a-wikipedia-page
+https://en.wikipedia.org/wiki/Help:What_links_here
+https://www.mediawiki.org/wiki/API:Main_page
+https://www.mediawiki.org/wiki/API:Links
+
+
+https://en.wikipedia.org/wiki/List_of_political_parties_by_region
+(?)
+https://en.wikipedia.org/wiki/Index_of_sociopolitical_thinkers
+https://en.wikipedia.org/wiki/List_of_political_philosophers
+https://en.wikipedia.org/wiki/List_of_political_ideologies
+https://en.wikipedia.org/wiki/Template:Political_ideologies
+https://en.wikipedia.org/wiki/Category:Politics
+
+
+
+https://docs.python-guide.org/writing/structure/
+
+
+
+
+#####################################################################
+Scraping
+#####################################################################
+Ideas: follow only pages with suitable categories?
+--> Use article category tags to determine (post-scrape) which pages are relevant
+
+
+
+
+#####################################################################
+Network
+#####################################################################
+
+
+
+
+#####################################################################
+Link analysis & sentiment analysis
+#####################################################################
+https://medium.com/@datamonsters/sentiment-analysis-tools-overview-part-1-positive-and-negative-words-databases-ae35431a470c
+http://sentistrength.wlv.ac.uk/
+
+Default is positive; check for negativity that would warrant overturning this null hypothesis.
+
+#####################################################################
+Clustering
+#####################################################################
+

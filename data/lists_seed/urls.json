@@ -1,0 +1,10 @@
+{
+  "page_links" : {"theories" : "https://en.wikipedia.org/wiki/Category:Political_theories",
+                  "philosophy" : "https://en.wikipedia.org/wiki/Category:Political_philosophy",
+                  "ideologies" : "https://en.wikipedia.org/wiki/List_of_political_ideologies"
+  },
+  "file_names" : {"theories" : "Category_Political_Theories.txt",
+                  "philosophy" : "Category_Political_Philosophy.txt",
+                  "ideologies" : "List_of_political_ideologies.txt"
+  }
+}
