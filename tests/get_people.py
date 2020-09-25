@@ -2,7 +2,7 @@
 	Author: Isaac Riley
 	Date:   September 2020
 
-	Contains code to run the entire process.
+	Contains code to obtain full list of thinkers.
 """
 
 #import sys
