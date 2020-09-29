@@ -7,10 +7,28 @@
 
 
 import os
+import re
 import pickle
+import json
 import networkx as nx
 import wikipediaapi
+import wikipedia
+#from nltk.parse.stanford import StanfordDependencyParser
+##from nltk.parse.corenlp import CoreNLPDependencyParser
+#from textblob import TextBlob
 
+with open("config.json") as f:
+    config = json.load(f)
+print("*** Configurations ***")
+for k,v in config.items():
+	print("  {0:<20}{1}".format(k+':', v))
+
+
+os.environ['STANFORD_PARSER'] = config["parser_path"]
+os.environ['STANFORD_MODELS'] = config["model_path"]
+
+#path_to_jar = '/usr/local/Cellar/stanford-parser/3.9.2_1/libexec/stanford-parser.jar'
+#path_to_models = '/usr/local/Cellar/stanford-parser/3.9.2_1/libexec/stanford-parser-3.9.2-models.jar'
 
 class WikiNet(object):
 	def __init__(self, ROOT_PATH):
@@ -18,6 +36,7 @@ class WikiNet(object):
 		self.ROOT_PATH = ROOT_PATH
 		with open(ROOT_PATH+'/data/lists_seed/root_categories.txt', 'r') as f:
 			self.seed_categories =  f.read().split('\n')
+		self.PEOPLE_PATH = 'data/lists_derived/thinkers.txt'
 		self.people = {}
 		# self.tag_set = set()
 		#self.keywords = set()
@@ -26,6 +45,10 @@ class WikiNet(object):
 		self.wiki = wikipediaapi.Wikipedia('en')
 		self.root_category = ''
 		#self.subcats = set()
+		#self.dependency_parser = StanfordDependencyParser(path_to_jar=config["path_to_jar"],
+		#											 path_to_models_jar=config["path_to_models_jar"])
+		# dependency_parser = CoreNLPDependencyParser()
+		# self.norms =
 
 	def add_from_seeds_fw(self, depth):
 		"""
@@ -40,7 +63,6 @@ class WikiNet(object):
 			page  = self.wiki.page(s)
 			links = page.links
 			cats  = page.categories
-
 
 	def add_from_seeds_bw(self, depth):
 		"""
@@ -67,9 +89,9 @@ class WikiNet(object):
 
 		:return:
 		"""
-		PEOPLE_PATH = self.ROOT_PATH+'/data/lists_derived/thinkers.txt'
-		if os.path.exists(PEOPLE_PATH):
-			with open(PEOPLE_PATH) as f:
+
+		if os.path.exists(self.PEOPLE_PATH):
+			with open(self.PEOPLE_PATH) as f:
 				self.people = {k:{} for k in f.read().split('\n')}
 		else:
 			people_set = set()
@@ -77,8 +99,29 @@ class WikiNet(object):
 				print('***Seed category***\n{}\n'.format(cat))
 				people_set = people_set.union(self.people_in_category(cat))
 			self.people.update({k:{} for k in list(people_set)})
-			self.save_people_list(PEOPLE_PATH)
+			self.save_people_list(self.PEOPLE_PATH)
 		print('Total number of thinkers:', len(self.people))
+
+	def get_sections(self):
+		self.sectiondict = {}
+		count = 0
+		self.fails = []
+		for l in self.people.keys():
+			if count%10==0:
+				print(count)
+			try:
+				p = self.wiki.page(l)
+				sections = [s.title for s in p.sections]
+				for s in sections:
+					if s in self.sectiondict:
+						self.sectiondict[s] = self.sectiondict[s] + 1
+					else:
+						self.sectiondict.update({s: 1})
+			except:
+				self.fails.append(l)
+			count += 1
+		#for k, v in self.sectiondict.items():
+		#	print("{0:<30}{1:>5}".format(k, v))
 
 	def create_full_network(self, min_thresh):
 		"""
@@ -184,12 +227,36 @@ class WikiNet(object):
 
 		:return:
 		"""
+		count = 0
+		for k in self.people.keys():
+			if count%50==0:
+				print(k)
+			if not os.path.exists('data/text_thinkers/{}.txt'.format(k)):
+				text = self.wiki.page(k).text
+				with open('data/text_thinkers/{}.txt'.format(k), 'w') as f:
+					f.write(text)
+			count += 1
 
 	def save_people_html(self): # as txt files
 		"""
 
 		:return:
 		"""
+		fails = []
+		for k in self.people.keys():
+			k_ = k.replace(" ", "_")
+			try:
+				h = wikipedia.page(k).html()
+				with open("data/html_thinkers/{}.html".format(k_), "w") as f:
+					f.write(h)
+				print("{} saved.".format(k_))
+			except:
+				fails.append(k)
+		print("***************************")
+		for f in fails:
+			print(f)
+		print("***************************")
+
 
 	def save_people_outlinks(self): # as json
 		"""
@@ -233,12 +300,42 @@ class WikiNet(object):
 		:return:
 		"""
 
-	def save_anchor_text(self): # as json (for each thinker?)
+	def extract_anchors(self): # as json (for each thinker?)
 		"""
 
 
 		:return:
 		"""
+		with open("data/lists_derived/linkdict.pickle", "rb") as f:
+			linkdict = pickle.load(f)
+		for k in list(self.people.keys())[100:115]:
+			print("***************************")
+			print(k)
+			print("***************************")
+			k_ = k.replace(" ", "_")
+			with open("data/html_thinkers/{}.html".format(k_), "r") as f:
+				raw = f.read().rsplit("</h2", 1)[0].split("<h2", 1)[-1]
+				#print(raw)
+			for l in list(linkdict[k]["from"])[10:15]:
+				l_ = l.replace(" ", "_")
+				print("---------------------------")
+				print("LINK:", l)
+				print("---------------------------")
+				pattern1 = re.compile('[^\.\?\!\n]+?<a href="/wiki/{}" title="{}">.+?</a>.+?[\.\?\!]'.format(l_, l))
+				#pattern1 = re.compile('(?<=<p>).+?<a href="/wiki/{}" title="{}">.+?</a>.+?(?=</p>)'.format(l_, l), re.S)
+				pattern2 = re.compile('\<a href="/wiki/{}" title="{}">.+?</a>'.format(l_, l))
+				s = re.search(pattern1, raw)
+				if s:
+					large = s.group()
+					anchor = re.sub(pattern2, "LINK", large)
+					anchor = re.sub("<.+?>", "", anchor)
+					anchor = re.sub("&#91;.*?&#93;", "", anchor)
+					print("ANCHOR:"" anchor)
+				else:
+					print("No match found for {} in {}.".format(l, k))
+				# need to decide how to save links
+
+
 
 	def people2graph(self):
 		"""
@@ -247,11 +344,21 @@ class WikiNet(object):
 		"""
 		self.digraph.add_nodes_from(list(self.people.keys()), attr={'type' : 'thinker'})
 
-	def join_people(self):
+	def dep_parse(self, anchor, entity):
+		"""
+		Uses NLTK with Stanford CoreNLP to generate a dependency parse.
+		:return:
+		"""
+		result = dependency_parser.raw_parse(anchor)
+		parse = list(next(result).triples())
+		return parse
+
+	def get_opinion(self, anchor, string):
 		"""
 
 		:return:
 		"""
+		blob = TextBlob(anchor)
 
 
 
