@@ -6,7 +6,7 @@
 """
 
 
-from network.wikinet import WikiNet
+from wikinet import WikiNet
 
 wn = WikiNet("data/lists_seed/root_categories.txt")
 wn.root_category = 'Category:Writers_from_Michigan'
